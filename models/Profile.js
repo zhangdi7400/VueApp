@@ -13,7 +13,7 @@ const profileSchema = new Schema({
         type:String,
         required:true
     },
-    exchange:{
+    expense:{
         type:String,
         required:true
     },

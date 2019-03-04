@@ -69,7 +69,7 @@ export default {
                 ],
                 password2: [
                     { required:true, message:"Confirm password can not be empty",trigger: 'blur' },
-                    { min:6, max:30, message:"Password length can be less than 2 or greater than 30",trigger: 'blur' },
+                    { min:6, max:30, message:"Password length can be less than 6 or greater than 30",trigger: 'blur' },
                     { validator: validatePass2, trigger: 'blur' }
                 ],
             }
@@ -80,8 +80,8 @@ export default {
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            this.$axios.post('api/users/register',this.registerUser)
-            .then(function (response) {
+            this.$axios.post('/api/users/register',this.registerUser)
+            .then(res => {
                 this.$message({
                     message:"Register successfully",
                     type:'success'
