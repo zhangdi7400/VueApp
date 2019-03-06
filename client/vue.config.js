@@ -40,7 +40,7 @@ module.exports = {
     devServer: {
         open: true,
         host: 'localhost',
-        port: 8080,
+        port: 8082,
         https: false,
         hotOnly: false,
         proxy: { // 配置跨域
@@ -48,10 +48,10 @@ module.exports = {
                 target: 'http://localhost:5000/',
                 ws: true,
                 changOrigin: true
-                /* ,
+                ,
                 pathRewrite: {
                     '^/api': ''
-                } */
+                }
             }
         },
         before: app => { }

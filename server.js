@@ -11,8 +11,8 @@ app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
 
-app.use("/api/users",users);
-app.use("/api/profiles",profiles);
+app.use("/users",users);
+app.use("/profiles",profiles);
 //DB config
 const db = require('./config/keys').mongoUrl;
 
