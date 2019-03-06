@@ -12,7 +12,8 @@
             <i class="fa fa-margin fa-server"></i>
             <span slot="title">Home</span>
         </el-menu-item>
-        <template v-for="item in items">
+      </router-link>
+      <template v-for="item in items">
             <el-submenu v-if="item.children" :index="item.path" :key="item.path">
                 <template slot="title">
                     <i :class="'fa fa-margin ' + item.icon"></i>
@@ -24,8 +25,8 @@
                     </el-menu-item>
                 </router-link>
             </el-submenu>
-        </template>
-      </router-link>
+      </template>
+      
     </el-menu>
   </el-col>
 </el-row>

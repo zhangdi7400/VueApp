@@ -2,9 +2,27 @@
 
 <div class="fillContainer">
 <div>
-    <el-form :inline="true" ref="add_data">
+    <el-form :inline="true" ref="add_data" :model="searchData">
+        <el-form-item label="Filter by date">
+            <el-date-picker
+                v-model="searchData.startTime"
+                type="datetime"
+                placeholder="Select Start Date"
+            >
+            </el-date-picker>
+            --
+            <el-date-picker
+                v-model="searchData.endTime"
+                type="datetime"
+                placeholder="Select End Date"
+            >
+            </el-date-picker>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" size="small" icon="search" @click="handleSearch()">Search</el-button>
+        </el-form-item>
         <el-form-item class="btnRight">
-            <el-button type="primary" size="small" icon="view" @click="handleAdd()">Add</el-button>
+            <el-button type="primary" size="small" v-if="user.identity=='administrator'"  icon="view" @click="handleAdd()">Add</el-button>
         </el-form-item>
     </el-form>
 </div>
@@ -83,6 +101,7 @@
             align='center'
             label="Operation"
             fixed="right"
+            v-if="user.identity=='administrator'"
             width="320">
             <template slot-scope='scope'>
                 <el-button 
@@ -104,38 +123,44 @@
         <el-col :span="24">
             <div class="pagination">
                 <el-pagination
-                    d
-                    :page-sizes="paginations.page_sizes"
-                    :page-size="paginations.page_size"
-                    :layout="paginations.layout"
-                    :total="paginations.total"
-                    :current-page.sync='paginations.page_index'
-                    @current-change='handleCurrentChange'
-                    @size-change='handleSizeChange'>
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                :current-page.sync="paginations.page_index"
+                :page-sizes="paginations.page_sizes"
+                :page-size="paginations.page_size"
+                :total="paginations.total"
+                layout="total, sizes, prev, pager, next, jumper"
+                >
                 </el-pagination>
             </div>
         </el-col>
     </el-row>
     </div>
-    <DiaLog :dialog="dialog" :formData="formData" @update="getProfile"></DiaLog>
+    <FoundDialog :dialog="dialog" :formData="formData" @update="getProfile"></FoundDialog>
 </div>
   
 </template>
 
 <script>
-import DiaLog from '../components/Dialog';
+import FoundDialog from '../components/Dialog';
 export default {
     name:"fundList",
     data(){
         return {
+            searchData:{
+                startTime:"",
+                endTime:""
+            },
             paginations:{
                 page_index:1,
-                total:0,
+                total:5,
                 page_size:5,
                 page_sizes:[5,10,15,20],
                 layout:"total,size,prev,pager,next,jumper"
             },
             tableData:[],
+            allTableData:[],
+            filterTableData:[],
             formData:{
                 type:"",
                 description:"",
@@ -152,6 +177,12 @@ export default {
             }
         };
     },
+    computed:{
+        user(){
+            return this.$store.getters.user;
+        }
+
+    },
     created(){
         this.getProfile();
 
@@ -162,7 +193,10 @@ export default {
             //get table data
             this.$axios.get("/api/profiles")
             .then(res => {
-                this.tableData = res.data;
+                this.allTableData = res.data;
+                this.filterTableData = res.data;
+                //set pagination data
+                this.setPaginations();
             }).catch(err =>{
                 console.log(err);
             });
@@ -211,15 +245,64 @@ export default {
             }
         },
         handleSizeChange(page_size){
+            this.paginations.page_index = 1;
+            this.paginations.page_size = page_size;
+            this.tableData = this.allTableData.filter((item,index) => {
+                return index < page_size;
+            });
 
         },
         handleCurrentChange(page){
+            
+            let index = this.paginations.page_size * (page-1);
+            let nums = this.paginations.page_size * page;
+
+            let tables = [];
+
+            for(let i = index; i < nums; i++){
+                if(this.allTableData[i]){
+                    tables.push(this.allTableData[i]);
+                }
+                this.tableData = tables;
+            }
+        },
+        setPaginations(){
+            this.paginations.total = this.allTableData.length;
+            this.paginations.page_index = 1;
+            this.paginations.page_size = 5;
+
+            this.tableData = this.allTableData.filter((item,index) => {
+                return index < this.paginations.page_size;
+            });
+        },
+        handleSearch(){
+            if(!this.searchData.startTime || !this.searchData.endTime){
+                this.$message({
+                    type:"warning",
+                    message:"Please select a valid time"
+                });
+                this.getProfile();
+                return;
+
+            }
+
+            const sTime = this.searchData.startTime.getTime();
+            const eTime = this.searchData.endTime.getTime();
+
+
+            this.allTableData = this.filterTableData.filter(item => {
+                let date = new Date(item.date);
+                let time = date.getTime();
+                return time >= sTime && time <= eTime;
+            }); 
+
+            this.setPaginations();
             
         }
 
     },
     components: {
-        DiaLog
+        FoundDialog
     }
 };
 </script>
